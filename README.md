@@ -5,13 +5,98 @@ Couche base de données **temps réel** pour MySQL **sans binlog** : événement
 - **Mode application** : les écritures passent par l’API du package → émission d’événements (WebSocket).
 - **Mode changelog** (optionnel) : table `_realtime_changelog` + triggers sur vos tables → un poller lit les changements et les diffuse.
 
-## Installation
+## Installation depuis npm
 
 ```bash
 npm install mysql-realtime-db
 ```
 
-## Configuration minimale (mode application)
+## Installation en local (développement)
+
+Si tu veux tester ou modifier le plugin localement :
+
+### 1. Cloner et installer les dépendances
+
+```bash
+git clone <url-du-repo>
+cd mysql-realtime-db
+npm install
+```
+
+### 2. Compiler le TypeScript
+
+```bash
+npm run build
+```
+
+Ceci génère les fichiers JS dans `dist/`.
+
+### 3. Utiliser le plugin en local dans un autre projet
+
+**Option A : Lien symbolique (npm link)**
+
+Dans le dossier du plugin :
+```bash
+npm link
+```
+
+Dans ton projet :
+```bash
+npm link mysql-realtime-db
+```
+
+**Option B : Chemin relatif**
+
+Dans ton projet :
+```bash
+npm install ../chemin/vers/mysql-realtime-db
+```
+
+### 4. Tester le plugin
+
+**Prérequis** : MySQL en cours d'exécution avec une base de données.
+
+```bash
+# Créer une base de test
+mysql -u root -p
+CREATE DATABASE IF NOT EXISTS mydb;
+```
+
+**Lancer le test complet** :
+
+```bash
+# Mode simple (un cycle d'opérations)
+npm run test:realtime
+
+# Mode boucle (opérations toutes les 3 secondes)
+npm run test:realtime:loop
+
+# Mode changelog (détecte les INSERT/UPDATE/DELETE faits en SQL direct)
+npm run test:realtime:changelog
+```
+
+**Tester depuis le navigateur** :
+
+1. Lance le serveur : `npm run test:realtime` ou `npm run test:realtime:changelog`
+2. Ouvre `test/test-realtime.html` dans ton navigateur
+3. Tu verras les événements en temps réel dans la page
+
+**Variables d'environnement** (optionnel) :
+
+```bash
+export MYSQL_HOST=localhost
+export MYSQL_PORT=3306
+export MYSQL_USER=root
+export MYSQL_PASSWORD=ton_password
+export MYSQL_DATABASE=mydb
+export REALTIME_PORT=3040
+
+npm run test:realtime
+```
+
+## Utilisation
+
+### Configuration minimale (mode application)
 
 ```javascript
 const realtime = require('mysql-realtime-db');
@@ -31,7 +116,7 @@ await db.connect();
 await db.startRealtimeServer();
 ```
 
-## Écouter les changements (côté serveur)
+### Écouter les changements (côté serveur)
 
 ```javascript
 db.on('users:insert', (row) => console.log('Nouveau user:', row));
@@ -40,7 +125,7 @@ db.on('users:delete', (row) => console.log('Supprimé:', row));
 db.on('users:*', (event, data) => console.log(event, data));
 ```
 
-## Écritures qui émettent les événements
+### Écritures qui émettent les événements
 
 ```javascript
 const id = await db.insert('users', { name: 'Alice', email: 'alice@example.com' });
@@ -48,13 +133,13 @@ await db.update('users', { id: 1 }, { name: 'Alice Updated' });
 await db.delete('users', { id: 1 });
 ```
 
-## Requêtes en lecture seule
+### Requêtes en lecture seule
 
 ```javascript
 const rows = await db.query('SELECT * FROM users WHERE active = ?', [1]);
 ```
 
-## Client distant (navigateur ou autre service Node)
+### Client distant (navigateur ou autre service Node)
 
 ```javascript
 const client = realtime.createClient({
@@ -73,7 +158,7 @@ client.subscribe('posts:*', (event, data) => {
 });
 ```
 
-## Mode changelog (capturer toutes les écritures)
+### Mode changelog (capturer toutes les écritures)
 
 Pour détecter les changements même hors de l’application (SQL direct, autre service), installez la table de changelog et les triggers (les tables doivent avoir une colonne `id`) :
 

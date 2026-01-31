@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test mysql-realtime-db</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 1rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; }
+    .status { padding: 0.5rem; border-radius: 6px; margin-bottom: 1rem; }
+    .status.connected { background: #d4edda; color: #155724; }
+    .status.disconnected { background: #f8d7da; color: #721c24; }
+    .status.connecting { background: #fff3cd; color: #856404; }
+    #log { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 6px; font-family: monospace; font-size: 12px; max-height: 360px; overflow-y: auto; }
+    #log .event { margin: 0.25rem 0; }
+    #log .event.insert { color: #4ec9b0; }
+    #log .event.update { color: #dcdcaa; }
+    #log .event.delete { color: #f48771; }
+    #log .time { color: #6a9955; font-size: 11px; }
+    button { padding: 0.5rem 1rem; cursor: pointer; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Test mysql-realtime-db (navigateur)</h1>
+  <p>Connecte le navigateur au serveur realtime et affiche les événements <code>users</code>.</p>
+  <p><strong>Important :</strong> les événements ne sont émis que si l’insertion passe par le plugin (<code>db.insert()</code>) ou si le serveur a été lancé en <strong>mode changelog</strong> (<code>node test/test-realtime.mjs --changelog</code>). Les insertions faites directement en SQL (Workbench, CLI) n’apparaissent qu’en mode changelog.</p>
+  <div id="status" class="status disconnected">Déconnecté</div>
+  <button id="reconnect">Reconnecter</button>
+  <h2>Événements reçus</h2>
+  <div id="log"></div>
+
+  <script>
+    const REALTIME_PORT = 3040;
+    const wsUrl = `ws://localhost:${REALTIME_PORT}/realtime`;
+    const statusEl = document.getElementById('status');
+    const logEl = document.getElementById('log');
+    let ws = null;
+
+    function setStatus(className, text) {
+      statusEl.className = 'status ' + className;
+      statusEl.textContent = text;
+    }
+
+    function addLog(event, data) {
+      const time = new Date().toLocaleTimeString('fr-FR');
+      const pre = document.createElement('div');
+      pre.className = 'event ' + event;
+      pre.innerHTML = `<span class="time">${time}</span> ${event}: ${JSON.stringify(data)}`;
+      logEl.appendChild(pre);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function connect() {
+      if (ws?.readyState === WebSocket.OPEN) return;
+      setStatus('connecting', 'Connexion…');
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        setStatus('connected', 'Connecté à ' + wsUrl);
+        ws.send(JSON.stringify({ action: 'subscribe', table: 'users', pattern: 'users' }));
+      };
+
+      ws.onmessage = (e) => {
+        try {
+          const payload = JSON.parse(e.data);
+          addLog(payload.type, payload.type === 'update' ? { previous: payload.previous, current: payload.current } : payload.data);
+        } catch (err) {
+          addLog('error', e.data);
+        }
+      };
+
+      ws.onclose = () => setStatus('disconnected', 'Déconnecté');
+      ws.onerror = () => setStatus('disconnected', 'Erreur de connexion');
+    }
+
+    document.getElementById('reconnect').onclick = () => {
+      if (ws) ws.close();
+      connect();
+    };
+
+    connect();
+  </script>
+</body>
+</html>

@@ -12,8 +12,8 @@
     "build": "tsc",
     "prepublishOnly": "npm run build",
     "test:realtime": "node test/test-realtime.mjs",
-    "test:realtime:loop": "node test/test-realtime.mjs --loop",
-    "test:realtime:changelog": "node test/test-realtime.mjs --changelog"
+    "test:realtime:changelog": "node test/test-realtime.mjs --changelog",
+    "test:realtime:loop": "node test/test-realtime.mjs --loop"
   },
   "keywords": [
     "mysql",
