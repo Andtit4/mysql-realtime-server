@@ -94,6 +94,33 @@ export REALTIME_PORT=3040
 npm run test:realtime
 ```
 
+**Tester depuis le navigateur méthode api node** :
+
+1. Lance le serveur : `npm run example:node` 
+2. Ouvre ` http://localhost:3000/` dans ton navigateur
+3. Tu verras les événements en temps réel dans la page avec pour particularité l'utilisation d'une api node
+
+**Variables d'environnement** (optionnel) :
+
+```bash
+export MYSQL_HOST=localhost
+export MYSQL_PORT=3306
+export MYSQL_USER=root
+export MYSQL_PASSWORD=ton_password
+export MYSQL_DATABASE=mydb
+export REALTIME_PORT=3040
+
+npm run example:node
+```
+
+```bash
+Server start
+  API :       http://localhost:3000/api/users
+  Realtime :  ws://localhost:3040/realtime
+  Page :      http://localhost:3000/
+
+```
+
 ## Utilisation
 
 ### Configuration minimale (mode application)

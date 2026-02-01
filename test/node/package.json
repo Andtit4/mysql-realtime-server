@@ -1,0 +1,24 @@
+{
+  "name": "mysql-realtime-db",
+  "version": "1.0.0",
+  "description": " Express + mysql-realtime-db",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "node --watch dist/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "mysql-realtime-db": "file:.."
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

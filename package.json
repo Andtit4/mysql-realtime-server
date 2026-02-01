@@ -13,7 +13,9 @@
     "prepublishOnly": "npm run build",
     "test:realtime": "node test/test-realtime.mjs",
     "test:realtime:changelog": "node test/test-realtime.mjs --changelog",
-    "test:realtime:loop": "node test/test-realtime.mjs --loop"
+    "test:realtime:loop": "node test/test-realtime.mjs --loop",
+    "example:node:build": "cd test/node && npm install && npm run build",
+    "example:node": "npm run build && npm run example:node:build && cd test/node && npm start"
   },
   "keywords": [
     "mysql",

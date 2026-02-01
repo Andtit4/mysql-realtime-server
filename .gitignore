@@ -7,3 +7,6 @@ coverage/
 .idea/
 *.tgz
 docs/
+test/node/dist/
+test/node/node_modules/
+
